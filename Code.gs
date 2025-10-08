@@ -27,8 +27,6 @@ function registerUser(sheet, e) {
   }
 
   const data = sheet.getDataRange().getValues();
-
-  // Convertir todo a string para comparar correctamente
   const exists = data.some(row => row[2]?.toString().trim() === phone);
 
   if (exists) {
@@ -36,16 +34,19 @@ function registerUser(sheet, e) {
   }
 
   const code = generateUniqueCode(sheet);
+  const password = generatePassword();
+
+  // Columna 8 (índice 8) será para la contraseña
   sheet.appendRow([
     new Date(),
     name,
     phone,
     code,
-    0, "-", "-", "No", ""
+    0, "-", "-", "No", password
   ]);
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${code}`;
-  const result = { status: "ok", code, qrUrl };
+  const result = { status: "ok", code, qrUrl, password };
 
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
@@ -63,14 +64,28 @@ function generateUniqueCode(sheet) {
   return code;
 }
 
+function generatePassword() {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
+
 function loginUser(sheet, e) {
   const phone = e.parameter.phone?.trim();
-  const data = sheet.getDataRange().getValues();
+  const password = e.parameter.password?.trim();
 
+  if (!phone || !password) {
+    return ContentService.createTextOutput("❌ Faltan datos (teléfono o contraseña).");
+  }
+
+  const data = sheet.getDataRange().getValues();
   const user = data.find(row => row[2]?.toString().trim() === phone);
 
   if (!user) {
     return ContentService.createTextOutput("❌ Usuario no encontrado.");
+  }
+
+  if (user[8] !== password) {
+    return ContentService.createTextOutput("❌ Contraseña incorrecta.");
   }
 
   const result = {
@@ -86,6 +101,9 @@ function loginUser(sheet, e) {
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+// Resto de funciones (addNutrias y getUserByCode) permanecen igual
+
 
 function addNutrias(sheet, e) {
   const code = e.parameter.code?.trim();

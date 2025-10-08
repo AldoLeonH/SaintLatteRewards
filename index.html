@@ -11,19 +11,85 @@
     <img src="assets/logo.png" alt="Saint Latte" class="logo">
     <h1>SAINT LATTE REWARDS</h1>
 
+    <!-- Registro -->
     <div class="form">
+      <h3>Registro</h3>
       <input type="text" id="name" placeholder="Tu nombre completo">
       <input type="tel" id="phone" placeholder="Número telefónico">
       <button onclick="register()">Registrarme</button>
 
       <hr>
+
+      <!-- Login -->
       <h3>Ya estoy registrado</h3>
       <input type="tel" id="loginPhone" placeholder="Ingresa tu número">
+      <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña">
       <button onclick="login()">Ingresar</button>
-      <p class="small">Al registrarte recibirás un código único y un QR que podrás mostrar en tienda.</p>
+      <p class="small">Al registrarte recibirás un código único, un QR y tu contraseña para ingresar al dashboard.</p>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // Reemplaza con la URL de tu WebApp de Apps Script
+
+    // Registro
+    async function register() {
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      if (!name || !phone) return alert("Completa todos los campos.");
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=register&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}`);
+        const data = await res.json();
+
+        if (data.status === "ok") {
+          document.body.innerHTML = `
+          <div class="container">
+            <img src="assets/logo.png" class="logo" alt="Saint Latte">
+            <h2>¡Gracias por registrarte, ${name}!</h2>
+            <p>Tu código único:</p>
+            <h3>${data.code}</h3>
+            <img src="${data.qrUrl}" alt="QR de cliente" class="qr-card">
+            <p>Tu contraseña para ingresar al dashboard:</p>
+            <h3>${data.password}</h3>
+            <p class="small">Guarda este QR y tu contraseña. Los necesitarás para iniciar sesión.</p>
+            <p><a href="index.html">Volver al inicio</a></p>
+          </div>`;
+        } else {
+          alert(data);
+        }
+      } catch (e) {
+        alert("Error al registrar. Intenta nuevamente.");
+        console.error(e);
+      }
+    }
+
+    // Login
+    async function login() {
+      const phone = document.getElementById("loginPhone").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      if (!phone || !password) return alert("Ingresa tu número y contraseña.");
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=login&phone=${encodeURIComponent(phone)}&password=${encodeURIComponent(password)}`);
+        const text = await res.text();
+
+        try {
+          const data = JSON.parse(text);
+          if (data.name) {
+            localStorage.setItem("user", JSON.stringify(data));
+            window.location.href = "dashboard.html";
+          } else {
+            alert("Teléfono o contraseña incorrectos.");
+          }
+        } catch (err) {
+          alert(text);
+        }
+      } catch (e) {
+        alert("Error contactando el servidor.");
+        console.error(e);
+      }
+    }
+  </script>
 </body>
 </html>
