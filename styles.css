@@ -1,74 +1,245 @@
-/* Saint Latte — Beige minimalista con verde oliva y dorado */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+/* Saint Latte — Minimalista beige con verde oliva y dorado */
+@import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@300;400;600;700&display=swap');
 
-:root{
-  --bg:#F7F2EC;
-  --card:#FFF9F4;
-  --text:#2D2A26;
-  --muted:#7A6F63;
-  --olive:#7A8662;
-  --gold:#C6A45A;
-  --accent:#EDE0CF;
+:root {
+  --bg: #F7F2EC;
+  --card: #FFF9F4;
+  --text: #2D2A26;
+  --muted: #7A6F63;
+  --olive: #7A8662;
+  --gold: #C6A45A;
+  --accent: #EDE0CF;
 }
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
+/* ===== Reset & base ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.container{
-  width:95%;
-  max-width:420px;
-  margin:48px auto;
-  background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));
-  border-radius:14px;
-  padding:28px;
-  box-shadow:0 6px 18px rgba(38,34,30,0.06);
-  text-align:center;
+body {
+  font-family: 'League Spartan', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px;
+  animation: fadeInBody 0.8s ease-in;
 }
 
-.logo{width:120px;margin:0 auto 12px;display:block}
-h1{margin:6px 0 18px;font-weight:600}
-.form input, input[type=tel], input[type=number]{
-  width:100%;
-  padding:12px 14px;
-  margin:8px 0;
-  border-radius:10px;
-  border:1px solid rgba(122,111,99,0.12);
-  background:var(--card);
-  font-size:15px;
+/* ===== Container principal ===== */
+.container {
+  width: 95%;
+  max-width: 420px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 0 6px 18px rgba(38,34,30,0.08);
+  text-align: center;
+  animation: floatIn 0.8s ease-out;
+  backdrop-filter: blur(6px);
 }
 
-button{
-  background:var(--olive);
-  color:white;
-  border:none;
-  padding:12px 16px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-  width:100%;
-  margin:8px 0;
+.logo {
+  width: 120px;
+  margin: 0 auto 16px;
+  display: block;
+  animation: popIn 0.6s ease;
 }
 
-button:hover{filter:brightness(.95)}
-hr{border:none;border-top:1px solid rgba(122,111,99,0.08);margin:18px 0}
+/* ===== Títulos ===== */
+h1 {
+  margin: 6px 0 18px;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: var(--olive);
+  letter-spacing: -0.5px;
+  animation: slideInDown 0.6s ease;
+}
 
-.small{font-size:12px;color:var(--muted)}
-.note{font-size:12px;color:var(--muted);margin-top:12px}
+/* ===== Formularios ===== */
+.form input,
+input[type=tel],
+input[type=number] {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 1px solid rgba(122,111,99,0.12);
+  background: var(--card);
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
 
-.progress{width:100%;background:var(--accent);border-radius:999px;overflow:hidden;height:22px;margin:8px 0}
-#bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--olive));transition:width .6s}
+.form input:focus {
+  outline: none;
+  border-color: var(--olive);
+  box-shadow: 0 0 0 3px rgba(122,134,98,0.15);
+}
 
-.qr-card{background:linear-gradient(180deg,#fff,#FEFBF8);padding:14px;border-radius:12px;margin:14px 0;box-shadow:0 4px 10px rgba(38,34,30,0.03)}
-.qr-card img{width:160px;height:160px;border-radius:8px;margin:8px 0;background:white;padding:8px}
+/* ===== Botones ===== */
+button {
+  background: var(--olive);
+  color: white;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  width: 100%;
+  margin: 8px 0;
+  transition: all 0.25s ease;
+}
 
-.card{background:var(--card);padding:12px;border-radius:10px;margin:12px 0;text-align:left}
-.promo{background:linear-gradient(90deg,rgba(198,164,90,0.08),rgba(122,134,98,0.04));padding:10px;border-radius:8px;margin:8px 0}
-.progress-label{margin-bottom:12px}
-a{color:var(--olive);text-decoration:none;font-weight:600}
+button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(122,134,98,0.2);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ===== Líneas y textos ===== */
+hr {
+  border: none;
+  border-top: 1px solid rgba(122,111,99,0.1);
+  margin: 22px 0;
+}
+
+.small,
+.note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note {
+  margin-top: 12px;
+}
+
+/* ===== Barra de progreso ===== */
+.progress {
+  width: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  overflow: hidden;
+  height: 22px;
+  margin: 10px 0;
+}
+
+#bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--gold), var(--olive));
+  transition: width 0.6s ease;
+}
+
+/* ===== Tarjetas QR / información ===== */
+.qr-card {
+  background: linear-gradient(180deg, #fff, #FEFBF8);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  box-shadow: 0 4px 10px rgba(38,34,30,0.05);
+  transition: all 0.3s ease;
+}
+
+.qr-card:hover {
+  transform: scale(1.02);
+}
+
+.qr-card img {
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
+  margin: 8px 0;
+  background: white;
+  padding: 8px;
+  animation: fadeIn 1s ease;
+}
+
+/* ===== Tarjetas secundarias ===== */
+.card {
+  background: var(--card);
+  padding: 14px;
+  border-radius: 10px;
+  margin: 12px 0;
+  text-align: left;
+  box-shadow: 0 2px 6px rgba(38,34,30,0.04);
+}
+
+.promo {
+  background: linear-gradient(90deg, rgba(198,164,90,0.08), rgba(122,134,98,0.05));
+  padding: 10px;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+/* ===== Enlaces ===== */
+a {
+  color: var(--olive);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--gold);
+}
+
+/* ===== Animaciones ===== */
+@keyframes fadeInBody {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== Responsividad ===== */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.6rem;
+  }
+  .container {
+    margin: 32px auto;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    margin: 16px auto;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 1.4rem;
+  }
+  button {
+    font-size: 15px;
+  }
+}
