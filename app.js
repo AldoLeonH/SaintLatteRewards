@@ -1,5 +1,5 @@
 // app.js - interacción básica cliente
-const SCRIPT_URL = "YOUR_WEBAPP_URL"; // Reemplaza con la URL de tu WebApp de Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // Reemplaza con la URL de tu WebApp de Apps Script
 
 async function register() {
   const name = document.getElementById("name").value.trim();
@@ -26,7 +26,7 @@ async function register() {
       alert(data);
     }
   } catch (e) {
-    alert("Error contactando el servidor.");
+    alert("Tu número ya fue registrado!");
     console.error(e);
   }
 }
