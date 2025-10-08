@@ -22,101 +22,137 @@
       <div id="scan-status" style="margin-top:10px; text-align:center; color:#666;"></div>
     </div>
 
-    <div id="result" class="user-info" style="margin-top:20px;"></div>
-
-    <div class="form-section">
-      <input type="number" id="amount" placeholder="Monto de compra (MXN)" />
-      <button id="assignBtn">Asignar Nutrias</button>
+    <div id="result" class="user-info" style="margin-top:20px;">
+      
     </div>
+
+<div id="reader"></div>
+<div id="scan-status"></div>
+
+<div id="result" class="user-info"></div>
+
+<!-- Aquí va la sección de asignar nutrias y canjear bebida -->
+<div class="form-section">
+  <input type="number" id="amount" placeholder="Monto de compra (MXN)" />
+  <button id="assignBtn">Asignar Nutrias</button>
+  <button id="redeemBtn" style="display:none; background:#f4a261; color:white;">Canjear bebida (-100 nutrias)</button>
+</div>
+
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // <-- Pega aquí tu URL del WebApp publicada
-    let scannedCode = null;
-    const reader = new Html5Qrcode("reader");
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // URL de tu WebApp
+  let scannedCode = null;
+  const reader = new Html5Qrcode("reader");
+  const redeemBtn = document.getElementById("redeemBtn");
 
-    document.addEventListener("DOMContentLoaded", () => {
-      initCameras();
-      document.getElementById("assignBtn").addEventListener("click", assignNutrias);
-    });
+  document.addEventListener("DOMContentLoaded", () => {
+    initCameras();
+    document.getElementById("assignBtn").addEventListener("click", assignNutrias);
+  });
 
-    function initCameras() {
-      Html5Qrcode.getCameras().then(cameras => {
-        const select = document.getElementById("cameraSelect");
-        if (!cameras || cameras.length === 0) {
-          document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
-          return;
-        }
-
-        // Llenar selector con las cámaras
-        cameras.forEach(cam => {
-          const option = document.createElement("option");
-          option.value = cam.id;
-          option.text = cam.label;
-          select.appendChild(option);
-        });
-
-        select.addEventListener("change", () => {
-          reader.stop().then(() => {
-            startScanner(select.value);
-          }).catch(err => console.log("Error al detener la cámara:", err));
-        });
-
-        // Inicia con la primera cámara disponible
-        startScanner(cameras[0].id);
-      }).catch(err => {
-        document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
-      });
-    }
-
-    function startScanner(cameraId) {
-      reader.start(
-        cameraId,
-        { fps: 10, qrbox: 250 },
-        (decodedText) => onScanSuccess(decodedText),
-        (errorMsg) => {
-          document.getElementById("scan-status").innerText = "Buscando QR...";
-        }
-      ).catch(err => {
-        document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
-      });
-    }
-
-    function onScanSuccess(decodedText) {
-      if (decodedText && decodedText !== scannedCode) {
-        scannedCode = decodedText;
-        reader.pause(true);
-        document.getElementById("scan-status").innerText = "✅ Código detectado: " + decodedText;
-        fetchUser(decodedText);
+  function initCameras() {
+    Html5Qrcode.getCameras().then(cameras => {
+      const select = document.getElementById("cameraSelect");
+      if (!cameras || cameras.length === 0) {
+        document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
+        return;
       }
-    }
 
-    function fetchUser(code) {
-      fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
-        .then(res => res.json())
-        .then(user => {
-          document.getElementById("result").innerHTML = `
-            <h3>${user.name}</h3>
-            <p>Teléfono: ${user.phone}</p>
-            <p>Nutrias actuales: ${user.nutrias}</p>
-            <p>Recompensa: ${user.rewards}</p>
-          `;
-        })
-        .catch(() => {
-          document.getElementById("result").innerHTML = "<p style='color:red;'>❌ Usuario no encontrado.</p>";
-        });
-    }
+      // Llenar selector con las cámaras
+      cameras.forEach(cam => {
+        const option = document.createElement("option");
+        option.value = cam.id;
+        option.text = cam.label;
+        select.appendChild(option);
+      });
 
-    async function assignNutrias() {
-      if (!scannedCode) return alert("Escanea primero un código QR.");
-      const amount = document.getElementById("amount").value;
-      if (!amount) return alert("Ingresa el monto de compra.");
+      select.addEventListener("change", () => {
+        reader.stop().then(() => {
+          startScanner(select.value);
+        }).catch(err => console.log("Error al detener la cámara:", err));
+      });
 
-      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
-      const text = await res.text();
-      alert(text);
-      location.reload(); // reinicia el lector tras asignar
+      // Inicia con la primera cámara disponible
+      startScanner(cameras[0].id);
+    }).catch(err => {
+      document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
+    });
+  }
+
+  function startScanner(cameraId) {
+    reader.start(
+      cameraId,
+      { fps: 10, qrbox: 250 },
+      (decodedText) => onScanSuccess(decodedText),
+      (errorMsg) => {
+        document.getElementById("scan-status").innerText = "Buscando QR...";
+      }
+    ).catch(err => {
+      document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
+    });
+  }
+
+  function onScanSuccess(decodedText) {
+    if (decodedText && decodedText !== scannedCode) {
+      scannedCode = decodedText;
+      reader.pause(true);
+      document.getElementById("scan-status").innerText = "✅ Código detectado: " + decodedText;
+      fetchUser(decodedText);
     }
-  </script>
+  }
+
+  function fetchUser(code) {
+    fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
+      .then(res => res.json())
+      .then(user => {
+        document.getElementById("result").innerHTML = `
+          <h3>${user.name}</h3>
+          <p>Teléfono: ${user.phone}</p>
+          <p>Nutrias actuales: ${user.nutrias}</p>
+          <p>Recompensa: ${user.rewards}</p>
+        `;
+
+        // Mostrar el botón de canje solo si tiene >=100 nutrias
+        if (Number(user.nutrias) >= 100) {
+          redeemBtn.style.display = "inline-block";
+        } else {
+          redeemBtn.style.display = "none";
+        }
+      })
+      .catch(() => {
+        document.getElementById("result").innerHTML = "<p style='color:red;'>❌ Usuario no encontrado.</p>";
+        redeemBtn.style.display = "none";
+      });
+  }
+
+  async function assignNutrias() {
+    if (!scannedCode) return alert("Escanea primero un código QR.");
+    const amount = document.getElementById("amount").value;
+    if (!amount) return alert("Ingresa el monto de compra.");
+
+    const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
+    const text = await res.text();
+    alert(text);
+    fetchUser(scannedCode); // actualizar panel tras asignar
+  }
+
+  // Evento de canje
+  redeemBtn.addEventListener("click", async () => {
+    if (!scannedCode) return alert("Escanea primero un código QR.");
+
+    // Confirmación doble
+    if (!confirm("⚠️ Confirma que deseas canjear 100 nutrias para una bebida gratis.")) return;
+    if (!confirm("⚠️ Esta acción restará 100 nutrias. ¿Estás seguro?")) return;
+
+    // Llamada a WebApp para restar 100 nutrias
+    const res = await fetch(`${SCRIPT_URL}?action=redeemBeverage&code=${scannedCode}`);
+    const text = await res.text();
+    alert(text);
+
+    fetchUser(scannedCode); // actualizar panel
+  });
+</script>
+
 </body>
 </html>
