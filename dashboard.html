@@ -4,16 +4,135 @@
   <meta charset="UTF-8">
   <title>Tu cuenta — Saint Latte</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .progress-wrapper {
+      margin-top: 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Encabezado del progreso */
+    .progress-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    /* Número de nutrias grande */
+    .nutrias-count {
+      font-size: 72px;
+      font-weight: 700;
+      color: var(--olive);
+      line-height: 1;
+      margin: 0;
+      animation: fadeIn 0.8s ease;
+    }
+
+    /* Emoji 🦦 */
+    .nutria-emoji {
+      font-size: 42px;
+      margin-top: 4px;
+      animation: bounce 1.8s infinite ease-in-out;
+    }
+
+    /* Meta */
+    .meta {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    /* Barra de progreso */
+    .progress {
+      position: relative;
+      height: 12px;
+      background-color: #f1e8da;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 16px auto 36px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    #bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--olive));
+      width: 0%;
+      transition: width 0.8s ease-in-out;
+      border-radius: 999px;
+    }
+
+    /* Hitos */
+    .milestones {
+      position: absolute;
+      top: 14px;
+      left: 0;
+      width: 100%;
+      height: 0;
+    }
+
+    .milestone {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .milestone::before {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 10px;
+      background-color: var(--gold);
+      border-radius: 50%;
+      margin: 0 auto 4px;
+    }
+
+    /* Animaciones */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @media (max-width: 480px) {
+      .nutrias-count {
+        font-size: 56px;
+      }
+      .nutria-emoji {
+        font-size: 36px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard container">
     <h1 id="welcome"></h1>
 
-    <div class="progress-label">
+    <div class="progress-wrapper">
+      <div class="progress-header">
+        <p class="nutrias-count" id="nutrias"></p>
+        <div class="nutria-emoji">🦦</div>
+        <p class="meta">Meta: 100</p>
+      </div>
+
       <div class="progress">
         <div id="bar"></div>
+        <div class="milestones">
+          <div class="milestone" style="left: 25%;">25</div>
+          <div class="milestone" style="left: 50%;">50</div>
+          <div class="milestone" style="left: 75%;">75</div>
+          <div class="milestone" style="left: 100%;">100</div>
+        </div>
       </div>
-      <p><span id="nutrias"></span> / 100 nutrias</p>
     </div>
 
     <div class="qr-card">
@@ -38,13 +157,18 @@
 
     document.getElementById("welcome").textContent = `Hola, ${user.name}`;
     document.getElementById("nutrias").textContent = user.nutrias;
-    document.getElementById("bar").style.width = `${Math.min(user.nutrias,100)}%`;
+    document.getElementById("bar").style.width = `${Math.min(user.nutrias, 100)}%`;
     document.getElementById("codeText").textContent = user.code;
-    // Generate QR image with public API
+
+    // QR dinámico
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(user.code)}`;
     document.getElementById("qrImg").src = qrUrl;
 
-    const rewardText = user.rewards === "Sí" ? "🎁 ¡Tienes una bebida o pan gratis disponible!" : "Sigue acumulando nutrias para ganar premios.";
+    // Texto de recompensa
+    const rewardText = user.rewards === "Sí"
+      ? "🎁 ¡Tienes una bebida o pan gratis disponible!"
+      : "Sigue acumulando 🦦 para ganar premios.";
+
     const rewardEl = document.createElement("p");
     rewardEl.textContent = rewardText;
     document.querySelector(".qr-card").appendChild(rewardEl);
