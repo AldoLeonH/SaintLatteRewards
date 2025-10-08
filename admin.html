@@ -13,6 +13,11 @@
 
     <div class="scanner-section">
       <h2>Escanear código QR del cliente</h2>
+
+      <!-- Selector de cámara -->
+      <label for="cameraSelect">Elige cámara:</label>
+      <select id="cameraSelect"></select>
+
       <div id="reader" style="width:300px; margin:auto; border:1px solid #ccc; border-radius:10px;"></div>
       <div id="scan-status" style="margin-top:10px; text-align:center; color:#666;"></div>
     </div>
@@ -28,37 +33,56 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // <-- Pega aquí tu URL del WebApp publicada
     let scannedCode = null;
+    const reader = new Html5Qrcode("reader");
 
     document.addEventListener("DOMContentLoaded", () => {
-      startScanner();
+      initCameras();
       document.getElementById("assignBtn").addEventListener("click", assignNutrias);
     });
 
-    function startScanner() {
-      const reader = new Html5Qrcode("reader");
-
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          const cameraId = devices[0].id;
-          reader.start(
-            cameraId,
-            { fps: 10, qrbox: 250 },
-            (decodedText) => onScanSuccess(decodedText, reader),
-            (errorMsg) => {
-              document.getElementById("scan-status").innerText = "Buscando QR...";
-            }
-          ).catch(err => {
-            document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
-          });
-        } else {
+    function initCameras() {
+      Html5Qrcode.getCameras().then(cameras => {
+        const select = document.getElementById("cameraSelect");
+        if (!cameras || cameras.length === 0) {
           document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
+          return;
         }
+
+        // Llenar selector con las cámaras
+        cameras.forEach(cam => {
+          const option = document.createElement("option");
+          option.value = cam.id;
+          option.text = cam.label;
+          select.appendChild(option);
+        });
+
+        select.addEventListener("change", () => {
+          reader.stop().then(() => {
+            startScanner(select.value);
+          }).catch(err => console.log("Error al detener la cámara:", err));
+        });
+
+        // Inicia con la primera cámara disponible
+        startScanner(cameras[0].id);
       }).catch(err => {
         document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
       });
     }
 
-    function onScanSuccess(decodedText, reader) {
+    function startScanner(cameraId) {
+      reader.start(
+        cameraId,
+        { fps: 10, qrbox: 250 },
+        (decodedText) => onScanSuccess(decodedText),
+        (errorMsg) => {
+          document.getElementById("scan-status").innerText = "Buscando QR...";
+        }
+      ).catch(err => {
+        document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
+      });
+    }
+
+    function onScanSuccess(decodedText) {
       if (decodedText && decodedText !== scannedCode) {
         scannedCode = decodedText;
         reader.pause(true);
