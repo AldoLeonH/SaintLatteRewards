@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Saint Latte — Panel Admin</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Panel Administrador</h1>
+    <div id="reader" style="width:320px;margin:20px auto;"></div>
+    <div id="result" class="card"></div>
+    <input type="number" id="amount" placeholder="Monto de compra (MXN)">
+    <button onclick="assignNutrias()">Asignar Nutrias</button>
+    <p class="small">Escanea el QR del cliente y luego ingresa el monto. Cada $10 = 1 nutria.</p>
+    <p><a href="index.html">Volver</a></p>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "YOUR_WEBAPP_URL"; // Reemplaza con tu URL de WebApp Apps Script
+    let scannedCode = null;
+
+    function onScanSuccess(decodedText, decodedResult) {
+      scannedCode = decodedText;
+      fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(decodedText)}`)
+        .then(res => res.json())
+        .then(user => {
+          if (user && user.name) {
+            document.getElementById("result").innerHTML = `
+              <h3>${user.name}</h3>
+              <p>Tel: ${user.phone}</p>
+              <p>Nutrias actuales: ${user.nutrias}</p>
+              <p>Recompensa: ${user.rewards}</p>
+              <p>Código: ${user.code}</p>
+            `;
+          } else {
+            document.getElementById("result").textContent = "Cliente no encontrado.";
+          }
+        })
+        .catch(err => {
+          document.getElementById("result").textContent = "Error consultando WebApp.";
+        });
+    }
+
+    function onScanError(errorMessage) {
+      // console.log("Scan error", errorMessage);
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess, onScanError);
+
+    async function assignNutrias() {
+      const amount = document.getElementById("amount").value;
+      if (!scannedCode) return alert("Escanea un QR primero.");
+      if (!amount) return alert("Ingresa el monto.");
+
+      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${encodeURIComponent(scannedCode)}&amount=${encodeURIComponent(amount)}`);
+      const text = await res.text();
+      alert(text);
+      // refresh displayed user
+      if (scannedCode) onScanSuccess(scannedCode);
+    }
+  </script>
+</body>
+</html>

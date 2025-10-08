@@ -1,0 +1,74 @@
+/* Saint Latte — Beige minimalista con verde oliva y dorado */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+:root{
+  --bg:#F7F2EC;
+  --card:#FFF9F4;
+  --text:#2D2A26;
+  --muted:#7A6F63;
+  --olive:#7A8662;
+  --gold:#C6A45A;
+  --accent:#EDE0CF;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Poppins',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.container{
+  width:95%;
+  max-width:420px;
+  margin:48px auto;
+  background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.95));
+  border-radius:14px;
+  padding:28px;
+  box-shadow:0 6px 18px rgba(38,34,30,0.06);
+  text-align:center;
+}
+
+.logo{width:120px;margin:0 auto 12px;display:block}
+h1{margin:6px 0 18px;font-weight:600}
+.form input, input[type=tel], input[type=number]{
+  width:100%;
+  padding:12px 14px;
+  margin:8px 0;
+  border-radius:10px;
+  border:1px solid rgba(122,111,99,0.12);
+  background:var(--card);
+  font-size:15px;
+}
+
+button{
+  background:var(--olive);
+  color:white;
+  border:none;
+  padding:12px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  width:100%;
+  margin:8px 0;
+}
+
+button:hover{filter:brightness(.95)}
+hr{border:none;border-top:1px solid rgba(122,111,99,0.08);margin:18px 0}
+
+.small{font-size:12px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin-top:12px}
+
+.progress{width:100%;background:var(--accent);border-radius:999px;overflow:hidden;height:22px;margin:8px 0}
+#bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--olive));transition:width .6s}
+
+.qr-card{background:linear-gradient(180deg,#fff,#FEFBF8);padding:14px;border-radius:12px;margin:14px 0;box-shadow:0 4px 10px rgba(38,34,30,0.03)}
+.qr-card img{width:160px;height:160px;border-radius:8px;margin:8px 0;background:white;padding:8px}
+
+.card{background:var(--card);padding:12px;border-radius:10px;margin:12px 0;text-align:left}
+.promo{background:linear-gradient(90deg,rgba(198,164,90,0.08),rgba(122,134,98,0.04));padding:10px;border-radius:8px;margin:8px 0}
+.progress-label{margin-bottom:12px}
+a{color:var(--olive);text-decoration:none;font-weight:600}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Tu cuenta — Saint Latte</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="dashboard container">
+    <h1 id="welcome"></h1>
+
+    <div class="progress-label">
+      <div class="progress">
+        <div id="bar"></div>
+      </div>
+      <p><span id="nutrias"></span> / 100 nutrias</p>
+    </div>
+
+    <div class="qr-card">
+      <h3>Tu código</h3>
+      <p id="codeText"></p>
+      <img id="qrImg" alt="QR de cliente">
+      <p class="small">Muestra este QR en la tienda para que te asignen nutrias automáticamente.</p>
+    </div>
+
+    <section class="promos">
+      <h2>Promociones</h2>
+      <div class="promo">🎃 Pumpkin Spice — temporada otoño</div>
+      <div class="promo">🍪 2x1 en galletas Saint Cookie (jueves)</div>
+    </section>
+
+    <p><a href="index.html">Salir</a></p>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) location.href = "index.html";
+
+    document.getElementById("welcome").textContent = `Hola, ${user.name}`;
+    document.getElementById("nutrias").textContent = user.nutrias;
+    document.getElementById("bar").style.width = `${Math.min(user.nutrias,100)}%`;
+    document.getElementById("codeText").textContent = user.code;
+    // Generate QR image with public API
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(user.code)}`;
+    document.getElementById("qrImg").src = qrUrl;
+
+    const rewardText = user.rewards === "Sí" ? "🎁 ¡Tienes una bebida o pan gratis disponible!" : "Sigue acumulando nutrias para ganar premios.";
+    const rewardEl = document.createElement("p");
+    rewardEl.textContent = rewardText;
+    document.querySelector(".qr-card").appendChild(rewardEl);
+  </script>
+</body>
+</html>

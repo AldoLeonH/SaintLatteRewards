@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Saint Latte — Programa de Lealtad</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <img src="assets/logo.png" alt="Saint Latte" class="logo">
+    <h1>Programa de Lealtad</h1>
+
+    <div class="form">
+      <input type="text" id="name" placeholder="Tu nombre completo">
+      <input type="tel" id="phone" placeholder="Número telefónico">
+      <button onclick="register()">Registrarme</button>
+
+      <hr>
+      <h3>Ya estoy registrado</h3>
+      <input type="tel" id="loginPhone" placeholder="Ingresa tu número">
+      <button onclick="login()">Ingresar</button>
+      <p class="small">Al registrarte recibirás un código único y un QR que podrás mostrar en tienda.</p>
+    </div>
+    <p class="note">IMPORTANTE: reemplaza <code>YOUR_WEBAPP_URL</code> en <code>app.js</code> por la URL de tu Google Apps Script publicada como WebApp.</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
