@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Saint Latte — Panel Admin</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
@@ -9,57 +10,88 @@
 <body>
   <div class="container">
     <h1>Panel Administrador</h1>
-    <div id="reader" style="width:320px;margin:20px auto;"></div>
-    <div id="result" class="card"></div>
-    <input type="number" id="amount" placeholder="Monto de compra (MXN)">
-    <button onclick="assignNutrias()">Asignar Nutrias</button>
-    <p class="small">Escanea el QR del cliente y luego ingresa el monto. Cada $10 = 1 nutria.</p>
-    <p><a href="index.html">Volver</a></p>
+
+    <div class="scanner-section">
+      <h2>Escanear código QR del cliente</h2>
+      <div id="reader" style="width:300px; margin:auto; border:1px solid #ccc; border-radius:10px;"></div>
+      <div id="scan-status" style="margin-top:10px; text-align:center; color:#666;"></div>
+    </div>
+
+    <div id="result" class="user-info" style="margin-top:20px;"></div>
+
+    <div class="form-section">
+      <input type="number" id="amount" placeholder="Monto de compra (MXN)" />
+      <button id="assignBtn">Asignar Nutrias</button>
+    </div>
   </div>
 
   <script>
-    const SCRIPT_URL = "YOUR_WEBAPP_URL"; // Reemplaza con tu URL de WebApp Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // <-- Pega aquí tu URL del WebApp publicada
     let scannedCode = null;
 
-    function onScanSuccess(decodedText, decodedResult) {
-      scannedCode = decodedText;
-      fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(decodedText)}`)
+    document.addEventListener("DOMContentLoaded", () => {
+      startScanner();
+      document.getElementById("assignBtn").addEventListener("click", assignNutrias);
+    });
+
+    function startScanner() {
+      const reader = new Html5Qrcode("reader");
+
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          const cameraId = devices[0].id;
+          reader.start(
+            cameraId,
+            { fps: 10, qrbox: 250 },
+            (decodedText) => onScanSuccess(decodedText, reader),
+            (errorMsg) => {
+              document.getElementById("scan-status").innerText = "Buscando QR...";
+            }
+          ).catch(err => {
+            document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
+          });
+        } else {
+          document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
+        }
+      }).catch(err => {
+        document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
+      });
+    }
+
+    function onScanSuccess(decodedText, reader) {
+      if (decodedText && decodedText !== scannedCode) {
+        scannedCode = decodedText;
+        reader.pause(true);
+        document.getElementById("scan-status").innerText = "✅ Código detectado: " + decodedText;
+        fetchUser(decodedText);
+      }
+    }
+
+    function fetchUser(code) {
+      fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
         .then(res => res.json())
         .then(user => {
-          if (user && user.name) {
-            document.getElementById("result").innerHTML = `
-              <h3>${user.name}</h3>
-              <p>Tel: ${user.phone}</p>
-              <p>Nutrias actuales: ${user.nutrias}</p>
-              <p>Recompensa: ${user.rewards}</p>
-              <p>Código: ${user.code}</p>
-            `;
-          } else {
-            document.getElementById("result").textContent = "Cliente no encontrado.";
-          }
+          document.getElementById("result").innerHTML = `
+            <h3>${user.name}</h3>
+            <p>Teléfono: ${user.phone}</p>
+            <p>Nutrias actuales: ${user.nutrias}</p>
+            <p>Recompensa: ${user.rewards}</p>
+          `;
         })
-        .catch(err => {
-          document.getElementById("result").textContent = "Error consultando WebApp.";
+        .catch(() => {
+          document.getElementById("result").innerHTML = "<p style='color:red;'>❌ Usuario no encontrado.</p>";
         });
     }
 
-    function onScanError(errorMessage) {
-      // console.log("Scan error", errorMessage);
-    }
-
-    const html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess, onScanError);
-
     async function assignNutrias() {
+      if (!scannedCode) return alert("Escanea primero un código QR.");
       const amount = document.getElementById("amount").value;
-      if (!scannedCode) return alert("Escanea un QR primero.");
-      if (!amount) return alert("Ingresa el monto.");
+      if (!amount) return alert("Ingresa el monto de compra.");
 
-      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${encodeURIComponent(scannedCode)}&amount=${encodeURIComponent(amount)}`);
+      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
       const text = await res.text();
       alert(text);
-      // refresh displayed user
-      if (scannedCode) onScanSuccess(scannedCode);
+      location.reload(); // reinicia el lector tras asignar
     }
   </script>
 </body>
