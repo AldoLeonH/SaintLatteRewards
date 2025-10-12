@@ -1,5 +1,5 @@
 // app.js - interacción básica cliente
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzsV1ltk19LskuUGG2Yw9nFBOa2cueIXz3PKrW6CPl4z6DL_P8uzpGawDQODZE7IJ7lmQ/exec"; // Reemplaza con la URL de tu WebApp de Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec"; // Reemplaza con la URL de tu WebApp de Apps Script
 
 async function register() {
   const name = document.getElementById("name").value.trim();
