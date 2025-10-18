@@ -30,13 +30,12 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      overflow-x: hidden;
       animation: fadeInBody 0.8s ease;
     }
 
     @keyframes fadeInBody {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .dashboard {
@@ -48,13 +47,7 @@
       text-align: center;
       box-shadow: 0 12px 25px rgba(122,111,99,0.15),
                   inset 0 0 12px rgba(255,255,255,0.6);
-      animation: floatIn 0.8s ease;
       backdrop-filter: blur(10px);
-    }
-
-    @keyframes floatIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
@@ -77,12 +70,6 @@
       color: var(--gold);
       margin: 0;
       text-shadow: 0 2px 6px rgba(198,164,90,0.25);
-      animation: pop 0.8s ease;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(0.9); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
     }
 
     .nutria-emoji {
@@ -118,9 +105,7 @@
       width: 0%;
       border-radius: 999px;
       background: linear-gradient(90deg, var(--gold), var(--olive));
-      background-size: 200% 100%;
       animation: shimmer 4s linear infinite;
-      box-shadow: 0 0 12px rgba(198,164,90,0.3);
     }
 
     @keyframes shimmer {
@@ -128,21 +113,42 @@
       100% { background-position: 100% 50%; }
     }
 
-    /* === TARJETA 3D PARA EL QR === */
+    /* === TARJETA 3D === */
     .card-container {
       perspective: 1000px;
-      margin-top: 10px;
+      margin-top: 16px;
+      display: flex;
+      justify-content: center;
     }
 
     .qr-card {
       position: relative;
-      width: 100%;
-      max-width: 260px;
-      height: 190px;
-      margin: 0 auto;
+      width: 320px;   /* Proporción real de tarjeta */
+      height: 202px;
       transform-style: preserve-3d;
-      transition: transform 0.8s ease;
+      transition: transform 0.9s cubic-bezier(0.4, 0.2, 0.2, 1);
       cursor: pointer;
+      border-radius: 14px;
+      box-shadow:
+        0 10px 25px rgba(122,111,99,0.15),
+        0 0 0 2px rgba(198,164,90,0.3),
+        inset 0 0 10px rgba(198,164,90,0.2);
+    }
+
+    /* Brillo metálico al pasar */
+    .qr-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: linear-gradient(130deg, rgba(0, 0, 0, 0.25), rgba(64, 51, 51, 0.05));
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .qr-card:hover::before {
+      opacity: 1;
     }
 
     .qr-card.flip {
@@ -153,34 +159,42 @@
       position: absolute;
       width: 100%;
       height: 100%;
-      border-radius: 16px;
+      border-radius: 14px;
       backface-visibility: hidden;
-      box-shadow: 0 6px 16px rgba(122,111,99,0.15);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 16px;
+      overflow: hidden;
     }
 
     /* Frente */
     .front {
-      background: linear-gradient(180deg, #fff, #FEFBF8);
+      background: radial-gradient(circle at 20% 30%, #fff, #F7F2EC);
     }
 
-    .front h3 {
-      color: var(--olive);
-      margin-bottom: 8px;
+    .front img {
+      width: 90px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 2px 3px rgba(198,164,90,0.2));
+      opacity: 0.9;
     }
 
-    .front p {
+    .front small {
       color: var(--muted);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      animation: blink 2.5s infinite ease-in-out;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
     }
 
     /* Reverso */
     .back {
-      background: linear-gradient(180deg, #f9f5ee, #efe6d8);
+      background: linear-gradient(160deg, #F7F2EC 0%, #EDE0CF 100%);
       transform: rotateY(180deg);
     }
 
@@ -190,7 +204,7 @@
       background: white;
       border-radius: 10px;
       padding: 6px;
-      box-shadow: 0 3px 10px rgba(198,164,90,0.2);
+      box-shadow: 0 3px 10px rgba(198,164,90,0.25);
       margin-bottom: 8px;
     }
 
@@ -203,13 +217,6 @@
     .back .code {
       color: var(--gold);
       font-size: 0.9rem;
-    }
-
-    .small {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 10px;
-      opacity: 0.85;
     }
 
     /* === Promociones === */
@@ -272,14 +279,13 @@
       <div id="bar"></div>
     </div>
 
-    <!-- Tarjeta interactiva -->
+    <!-- Tarjeta -->
     <div class="card-container">
       <div class="qr-card" id="qrCard">
         <!-- Frente -->
         <div class="face front">
-          <h3>Tu código de cliente</h3>
-          <p id="codeText"></p>
-          <small class="small">Toca para ver tu QR</small>
+          <img src="assets/logo.png" alt="Saint Latte">
+          <small>Toca para ver tu QR</small>
         </div>
 
         <!-- Reverso -->
@@ -311,14 +317,13 @@
     document.getElementById("welcome").textContent = `Hola, ${user.name}`;
     document.getElementById("nutrias").textContent = user.nutrias;
     document.getElementById("bar").style.width = `${Math.min(user.nutrias, 100)}%`;
-    document.getElementById("codeText").textContent = user.code;
     document.getElementById("userName").textContent = user.name;
     document.getElementById("userCode").textContent = "Código: " + user.code;
 
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(user.code)}`;
     document.getElementById("qrImg").src = qrUrl;
 
-    // Efecto flip
+    // Flip effect
     const qrCard = document.getElementById("qrCard");
     qrCard.addEventListener("click", () => {
       qrCard.classList.toggle("flip");
