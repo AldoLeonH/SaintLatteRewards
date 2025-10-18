@@ -4,143 +4,291 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Tu cuenta — Saint Latte</title>
-  <link rel="stylesheet" href="styles.css">
   <style>
-    .progress-wrapper {
-      margin-top: 24px;
-      text-align: center;
-      position: relative;
+    :root {
+      --bg: #F7F2EC;
+      --card: #FFF9F4;
+      --text: #2D2A26;
+      --muted: #7A6F63;
+      --olive: #7A8662;
+      --gold: #C6A45A;
+      --accent: #EDE0CF;
     }
 
-    /* Encabezado del progreso */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      animation: fadeInBody 0.8s ease;
+    }
+
+    @keyframes fadeInBody {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .dashboard {
+      background: var(--card);
+      border-radius: 22px;
+      padding: 32px 26px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 12px 25px rgba(122,111,99,0.15),
+                  inset 0 0 12px rgba(255,255,255,0.6);
+      animation: floatIn 0.8s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      color: var(--olive);
+      margin-bottom: 16px;
+      text-shadow: 0 1px 1px rgba(198,164,90,0.2);
+    }
+
     .progress-header {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       margin-bottom: 16px;
     }
 
-    /* Número de nutrias grande */
     .nutrias-count {
       font-size: 72px;
       font-weight: 700;
-      color: var(--olive);
-      line-height: 1;
+      color: var(--gold);
       margin: 0;
-      animation: fadeIn 0.8s ease;
+      text-shadow: 0 2px 6px rgba(198,164,90,0.25);
+      animation: pop 0.8s ease;
     }
 
-    /* Emoji 🦦 */
+    @keyframes pop {
+      0% { transform: scale(0.9); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
     .nutria-emoji {
       font-size: 42px;
       margin-top: 4px;
-      animation: bounce 1.8s infinite ease-in-out;
+      animation: bounce 2s ease-in-out infinite;
     }
 
-    /* Meta */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
     .meta {
       font-size: 14px;
       color: var(--muted);
       margin-top: 6px;
     }
 
-    /* Barra de progreso */
     .progress {
-      position: relative;
-      height: 12px;
-      background-color: #f1e8da;
-      border-radius: 999px;
-      overflow: hidden;
-      margin: 16px auto 36px;
       width: 100%;
       max-width: 360px;
+      height: 14px;
+      background: #f1e8da;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 20px auto 36px;
+      position: relative;
     }
 
     #bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--gold), var(--olive));
       width: 0%;
-      transition: width 0.8s ease-in-out;
       border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold), var(--olive));
+      background-size: 200% 100%;
+      animation: shimmer 4s linear infinite;
+      box-shadow: 0 0 12px rgba(198,164,90,0.3);
     }
 
-    /* Hitos */
-    .milestones {
-      position: absolute;
-      top: 14px;
-      left: 0;
+    @keyframes shimmer {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    /* === TARJETA 3D PARA EL QR === */
+    .card-container {
+      perspective: 1000px;
+      margin-top: 10px;
+    }
+
+    .qr-card {
+      position: relative;
       width: 100%;
-      height: 0;
+      max-width: 260px;
+      height: 190px;
+      margin: 0 auto;
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease;
+      cursor: pointer;
     }
 
-    .milestone {
+    .qr-card.flip {
+      transform: rotateY(180deg);
+    }
+
+    .face {
       position: absolute;
-      top: 0;
-      transform: translateX(-50%);
-      text-align: center;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      backface-visibility: hidden;
+      box-shadow: 0 6px 16px rgba(122,111,99,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    /* Frente */
+    .front {
+      background: linear-gradient(180deg, #fff, #FEFBF8);
+    }
+
+    .front h3 {
+      color: var(--olive);
+      margin-bottom: 8px;
+    }
+
+    .front p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Reverso */
+    .back {
+      background: linear-gradient(180deg, #f9f5ee, #efe6d8);
+      transform: rotateY(180deg);
+    }
+
+    .back img {
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 10px;
+      padding: 6px;
+      box-shadow: 0 3px 10px rgba(198,164,90,0.2);
+      margin-bottom: 8px;
+    }
+
+    .back .name {
+      color: var(--olive);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .back .code {
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+
+    .small {
       font-size: 12px;
       color: var(--muted);
+      margin-top: 10px;
+      opacity: 0.85;
     }
 
-    .milestone::before {
-      content: '';
-      display: block;
-      width: 10px;
-      height: 10px;
-      background-color: var(--gold);
-      border-radius: 50%;
-      margin: 0 auto 4px;
+    /* === Promociones === */
+    .promos {
+      margin-top: 30px;
+      text-align: left;
     }
 
-    /* Animaciones */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
+    .promos h2 {
+      font-size: 1rem;
+      color: var(--olive);
+      margin-bottom: 8px;
     }
 
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
+    .promo {
+      background: rgba(198,164,90,0.08);
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      color: var(--text);
     }
 
-    @media (max-width: 480px) {
-      .nutrias-count {
-        font-size: 56px;
-      }
-      .nutria-emoji {
-        font-size: 36px;
-      }
+    .promo:hover {
+      background: rgba(198,164,90,0.15);
+      transform: translateX(4px);
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 24px;
+      text-decoration: none;
+      background: linear-gradient(90deg, var(--olive), var(--gold));
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(122,134,98,0.25);
+    }
+
+    a:hover {
+      filter: brightness(1.05);
+      transform: translateY(-2px);
     }
   </style>
 </head>
 <body>
-  <div class="dashboard container">
+  <div class="dashboard">
     <h1 id="welcome"></h1>
 
-    <div class="progress-wrapper">
-      <div class="progress-header">
-        <p class="nutrias-count" id="nutrias"></p>
-        <div class="nutria-emoji">🦦</div>
-        <p class="meta">Meta: 100</p>
-      </div>
-
-      <div class="progress">
-        <div id="bar"></div>
-        <div class="milestones">
-          <div class="milestone" style="left: 25%;">25</div>
-          <div class="milestone" style="left: 50%;">50</div>
-          <div class="milestone" style="left: 75%;">75</div>
-          <div class="milestone" style="left: 100%;">100</div>
-        </div>
-      </div>
+    <div class="progress-header">
+      <p class="nutrias-count" id="nutrias"></p>
+      <div class="nutria-emoji">🦦</div>
+      <p class="meta">Meta: 100</p>
     </div>
 
-    <div class="qr-card">
-      <h3>Tu código</h3>
-      <p id="codeText"></p>
-      <img id="qrImg" alt="QR de cliente">
-      <p class="small">Muestra este QR en la tienda para que te asignen nutrias automáticamente.</p>
+    <div class="progress">
+      <div id="bar"></div>
+    </div>
+
+    <!-- Tarjeta interactiva -->
+    <div class="card-container">
+      <div class="qr-card" id="qrCard">
+        <!-- Frente -->
+        <div class="face front">
+          <h3>Tu código de cliente</h3>
+          <p id="codeText"></p>
+          <small class="small">Toca para ver tu QR</small>
+        </div>
+
+        <!-- Reverso -->
+        <div class="face back">
+          <img id="qrImg" alt="QR de cliente">
+          <div class="name" id="userName"></div>
+          <div class="code" id="userCode"></div>
+        </div>
+      </div>
     </div>
 
     <section class="promos">
@@ -149,30 +297,33 @@
       <div class="promo">🍪 2x1 en galletas Saint Cookie (jueves)</div>
     </section>
 
-    <p><a href="index.html">Salir</a></p>
+    <a href="index.html">Salir</a>
   </div>
 
   <script>
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user) location.href = "index.html";
+    const user = JSON.parse(localStorage.getItem("user")) || {
+      name: "Aldo Leon Hernandez",
+      code: "SL-3AZPX",
+      nutrias: 36,
+      rewards: "No"
+    };
 
     document.getElementById("welcome").textContent = `Hola, ${user.name}`;
     document.getElementById("nutrias").textContent = user.nutrias;
     document.getElementById("bar").style.width = `${Math.min(user.nutrias, 100)}%`;
     document.getElementById("codeText").textContent = user.code;
+    document.getElementById("userName").textContent = user.name;
+    document.getElementById("userCode").textContent = "Código: " + user.code;
 
-    // QR dinámico
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(user.code)}`;
     document.getElementById("qrImg").src = qrUrl;
 
-    // Texto de recompensa
-    const rewardText = user.rewards === "Sí"
-      ? "🎁 ¡Tienes una bebida o pan gratis disponible!"
-      : "Sigue acumulando 🦦 para ganar premios.";
-
-    const rewardEl = document.createElement("p");
-    rewardEl.textContent = rewardText;
-    document.querySelector(".qr-card").appendChild(rewardEl);
+    // Efecto flip
+    const qrCard = document.getElementById("qrCard");
+    qrCard.addEventListener("click", () => {
+      qrCard.classList.toggle("flip");
+      if (navigator.vibrate) navigator.vibrate(30);
+    });
   </script>
 </body>
 </html>
