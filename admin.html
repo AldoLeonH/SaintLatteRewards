@@ -137,26 +137,48 @@
 
     /* ========== SCANNER ========== */
     function initCameras() {
-      Html5Qrcode.getCameras().then(cameras => {
-        const select = document.getElementById("cameraSelect");
-        if (!cameras || cameras.length === 0) {
-          document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
-          return;
-        }
-        cameras.forEach(cam => {
-          const option = document.createElement("option");
-          option.value = cam.id;
-          option.text = cam.label;
-          select.appendChild(option);
-        });
-        select.addEventListener("change", () => {
-          reader.stop().then(() => startScanner(select.value)).catch(err => console.log("Error al detener la cámara:", err));
-        });
-        startScanner(cameras[0].id);
-      }).catch(err => {
-        document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
-      });
+  Html5Qrcode.getCameras().then(cameras => {
+    const select = document.getElementById("cameraSelect");
+    if (!cameras || cameras.length === 0) {
+      document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
+      return;
     }
+
+    // Llenar el selector de cámaras
+    cameras.forEach(cam => {
+      const option = document.createElement("option");
+      option.value = cam.id;
+      option.text = cam.label || "Cámara sin nombre";
+      select.appendChild(option);
+    });
+
+    // Buscar cámara trasera por nombre o palabra clave
+    let backCamera = cameras.find(cam =>
+      cam.label.toLowerCase().includes("back") ||
+      cam.label.toLowerCase().includes("rear") ||
+      cam.label.toLowerCase().includes("environment")
+    );
+
+    // Si no hay trasera, usar la primera
+    const defaultCameraId = backCamera ? backCamera.id : cameras[0].id;
+
+    // Seleccionarla en el dropdown
+    select.value = defaultCameraId;
+
+    // Iniciar con la cámara trasera por defecto
+    startScanner(defaultCameraId);
+
+    // Cambiar manualmente si el usuario elige otra
+    select.addEventListener("change", () => {
+      reader.stop()
+        .then(() => startScanner(select.value))
+        .catch(err => console.error("Error al detener la cámara:", err));
+    });
+  }).catch(err => {
+    document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
+  });
+}
+
 
     function startScanner(cameraId) {
       reader.start(
