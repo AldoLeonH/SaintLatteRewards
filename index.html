@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Saint Latte — Programa de Lealtad</title>
   <link rel="stylesheet" href="styles.css">
+
   <style>
     /* Estilos del aviso de privacidad */
     .privacy-link {
@@ -26,7 +27,7 @@
       background: #FFF3E0;
     }
 
-    /* Modal */
+    /* Modal de privacidad */
     .privacy-modal {
       display: none;
       position: fixed;
@@ -66,6 +67,36 @@
     .close-btn:hover {
       color: #2D2A26;
     }
+
+    /* Overlay de carga (nutria girando) */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 9999;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    #loadingOverlay img {
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -78,7 +109,7 @@
       <h3>Registro</h3>
       <input type="text" id="name" placeholder="Tu nombre completo">
       <input type="tel" id="phone" placeholder="Número telefónico">
-      <button onclick="register()">Registrarme</button>
+      <button id="registerBtn">Registrarme</button>
 
       <hr>
 
@@ -86,9 +117,18 @@
       <h3>Ya estoy registrado</h3>
       <input type="tel" id="loginPhone" placeholder="Ingresa tu número">
       <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña">
-      <button onclick="login()">Ingresar</button>
-      <p class="small">Al registrarte recibirás un código único, un QR y tu contraseña para ingresar al dashboard.</p>
+      <button id="loginBtn">Ingresar</button>
+
+      <p class="small">
+        Al registrarte recibirás un código único, un QR y tu contraseña para ingresar al dashboard.
+      </p>
     </div>
+  </div>
+
+  <!-- Overlay de carga -->
+  <div id="loadingOverlay">
+    <img src="assets/otter.png" alt="Nutria girando">
+    <p>Procesando, por favor espera...</p>
   </div>
 
   <!-- Enlace al aviso -->
@@ -108,14 +148,36 @@
         No compartimos, vendemos ni transferimos tu información a terceros.  
         Puedes solicitar la eliminación de tus datos en cualquier momento contactándonos directamente en la cafetería.
       </p>
-      <p>
-        Última actualización: Octubre 2025.
-      </p>
+      <p>Última actualización: Octubre 2025.</p>
     </div>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec";
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const registerBtn = document.getElementById("registerBtn");
+    const loginBtn = document.getElementById("loginBtn");
+
+    function showLoading() {
+      loadingOverlay.style.display = "flex";
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = "none";
+    }
+
+    // Bloquear doble clic
+    function disableButton(btn) {
+      btn.disabled = true;
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+    }
+
+    function enableButton(btn) {
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      btn.style.cursor = "pointer";
+    }
 
     // Registro
     async function register() {
@@ -123,9 +185,15 @@
       const phone = document.getElementById("phone").value.trim();
       if (!name || !phone) return alert("Completa todos los campos.");
 
+      disableButton(registerBtn);
+      showLoading();
+
       try {
         const res = await fetch(`${SCRIPT_URL}?action=register&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}`);
         const data = await res.json();
+
+        hideLoading();
+        enableButton(registerBtn);
 
         if (data.status === "ok") {
           document.body.innerHTML = `
@@ -144,6 +212,8 @@
           alert(data);
         }
       } catch (e) {
+        hideLoading();
+        enableButton(registerBtn);
         alert("Error al registrar. Intenta nuevamente.");
         console.error(e);
       }
@@ -155,9 +225,15 @@
       const password = document.getElementById("loginPassword").value.trim();
       if (!phone || !password) return alert("Ingresa tu número y contraseña.");
 
+      disableButton(loginBtn);
+      showLoading();
+
       try {
         const res = await fetch(`${SCRIPT_URL}?action=login&phone=${encodeURIComponent(phone)}&password=${encodeURIComponent(password)}`);
         const text = await res.text();
+
+        hideLoading();
+        enableButton(loginBtn);
 
         try {
           const data = JSON.parse(text);
@@ -171,10 +247,16 @@
           alert(text);
         }
       } catch (e) {
+        hideLoading();
+        enableButton(loginBtn);
         alert("Error contactando el servidor.");
         console.error(e);
       }
     }
+
+    // Eventos
+    registerBtn.addEventListener("click", register);
+    loginBtn.addEventListener("click", login);
 
     // Aviso de privacidad
     function openPrivacy() {
