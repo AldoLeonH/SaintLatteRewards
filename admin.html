@@ -13,8 +13,6 @@
 
     <div class="scanner-section">
       <h2>Escanear código QR del cliente</h2>
-
-      <!-- Selector de cámara -->
       <label for="cameraSelect">Elige cámara:</label>
       <select id="cameraSelect"></select>
 
@@ -22,137 +20,195 @@
       <div id="scan-status" style="margin-top:10px; text-align:center; color:#666;"></div>
     </div>
 
-    <div id="result" class="user-info" style="margin-top:20px;">
-      
+    <div id="result" class="user-info" style="margin-top:20px;"></div>
+
+    <!-- Asignar Nutrias y Canje -->
+    <div class="form-section">
+      <input type="number" id="amount" placeholder="Monto de compra (MXN)" />
+      <button id="assignBtn">Asignar Nutrias</button>
+      <button id="redeemBtn" style="display:none; background:#f4a261; color:white;">Canjear bebida (-100 nutrias)</button>
     </div>
-
-<div id="reader"></div>
-<div id="scan-status"></div>
-
-<div id="result" class="user-info"></div>
-
-<!-- Aquí va la sección de asignar nutrias y canjear bebida -->
-<div class="form-section">
-  <input type="number" id="amount" placeholder="Monto de compra (MXN)" />
-  <button id="assignBtn">Asignar Nutrias</button>
-  <button id="redeemBtn" style="display:none; background:#f4a261; color:white;">Canjear bebida (-100 nutrias)</button>
-</div>
-
   </div>
 
   <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec"; // URL de tu WebApp
-  let scannedCode = null;
-  const reader = new Html5Qrcode("reader");
-  const redeemBtn = document.getElementById("redeemBtn");
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec";
+    let scannedCode = null;
+    const reader = new Html5Qrcode("reader");
+    const redeemBtn = document.getElementById("redeemBtn");
 
-  document.addEventListener("DOMContentLoaded", () => {
-    initCameras();
-    document.getElementById("assignBtn").addEventListener("click", assignNutrias);
-  });
-
-  function initCameras() {
-    Html5Qrcode.getCameras().then(cameras => {
-      const select = document.getElementById("cameraSelect");
-      if (!cameras || cameras.length === 0) {
-        document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
-        return;
-      }
-
-      // Llenar selector con las cámaras
-      cameras.forEach(cam => {
-        const option = document.createElement("option");
-        option.value = cam.id;
-        option.text = cam.label;
-        select.appendChild(option);
-      });
-
-      select.addEventListener("change", () => {
-        reader.stop().then(() => {
-          startScanner(select.value);
-        }).catch(err => console.log("Error al detener la cámara:", err));
-      });
-
-      // Inicia con la primera cámara disponible
-      startScanner(cameras[0].id);
-    }).catch(err => {
-      document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
+    document.addEventListener("DOMContentLoaded", () => {
+      initCameras();
+      document.getElementById("assignBtn").addEventListener("click", assignNutrias);
     });
-  }
 
-  function startScanner(cameraId) {
-    reader.start(
-      cameraId,
-      { fps: 10, qrbox: 250 },
-      (decodedText) => onScanSuccess(decodedText),
-      (errorMsg) => {
-        document.getElementById("scan-status").innerText = "Buscando QR...";
-      }
-    ).catch(err => {
-      document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
-    });
-  }
+    /* ========== UTILIDAD PARA MOSTRAR MODALES ========== */
+    function showModal({ title, message, buttonText = "Cerrar", onClose = null }) {
+      const modal = document.createElement("div");
+      modal.style.position = "fixed";
+      modal.style.top = "0";
+      modal.style.left = "0";
+      modal.style.width = "100%";
+      modal.style.height = "100%";
+      modal.style.background = "rgba(0,0,0,0.6)";
+      modal.style.display = "flex";
+      modal.style.alignItems = "center";
+      modal.style.justifyContent = "center";
+      modal.style.zIndex = "9999";
 
-  function onScanSuccess(decodedText) {
-    if (decodedText && decodedText !== scannedCode) {
-      scannedCode = decodedText;
-      reader.pause(true);
-      document.getElementById("scan-status").innerText = "✅ Código detectado: " + decodedText;
-      fetchUser(decodedText);
+      modal.innerHTML = `
+        <div style="background:#fff; padding:25px 35px; border-radius:12px; text-align:center; font-family:sans-serif; max-width:320px; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+          <h2 style="margin-bottom:10px;">${title}</h2>
+          <p style="margin-bottom:20px;">${message}</p>
+          <button id="closeModal" style="padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer;">${buttonText}</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById("closeModal").addEventListener("click", () => {
+        document.body.removeChild(modal);
+        if (onClose) onClose();
+      });
     }
-  }
 
-  function fetchUser(code) {
-    fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
-      .then(res => res.json())
-      .then(user => {
-        document.getElementById("result").innerHTML = `
-          <h3>${user.name}</h3>
-          <p>Teléfono: ${user.phone}</p>
-          <p>Nutrias actuales: ${user.nutrias}</p>
-          <p>Recompensa: ${user.rewards}</p>
-        `;
+    function showConfirm(message, onConfirm) {
+      const modal = document.createElement("div");
+      modal.style.position = "fixed";
+      modal.style.top = "0";
+      modal.style.left = "0";
+      modal.style.width = "100%";
+      modal.style.height = "100%";
+      modal.style.background = "rgba(0,0,0,0.6)";
+      modal.style.display = "flex";
+      modal.style.alignItems = "center";
+      modal.style.justifyContent = "center";
+      modal.style.zIndex = "9999";
 
-        // Mostrar el botón de canje solo si tiene >=100 nutrias
-        if (Number(user.nutrias) >= 100) {
-          redeemBtn.style.display = "inline-block";
-        } else {
-          redeemBtn.style.display = "none";
-        }
-      })
-      .catch(() => {
-        document.getElementById("result").innerHTML = "<p style='color:red;'>❌ Usuario no encontrado.</p>";
-        redeemBtn.style.display = "none";
+      modal.innerHTML = `
+        <div style="background:#fff; padding:25px 35px; border-radius:12px; text-align:center; font-family:sans-serif; max-width:320px;">
+          <p style="margin-bottom:20px;">${message}</p>
+          <button id="confirmYes" style="padding:8px 18px; background:#28a745; color:white; border:none; border-radius:6px; margin-right:10px;">Sí</button>
+          <button id="confirmNo" style="padding:8px 18px; background:#dc3545; color:white; border:none; border-radius:6px;">No</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById("confirmYes").addEventListener("click", () => {
+        document.body.removeChild(modal);
+        onConfirm(true);
       });
-  }
+      document.getElementById("confirmNo").addEventListener("click", () => {
+        document.body.removeChild(modal);
+        onConfirm(false);
+      });
+    }
 
-  async function assignNutrias() {
-    if (!scannedCode) return alert("Escanea primero un código QR.");
-    const amount = document.getElementById("amount").value;
-    if (!amount) return alert("Ingresa el monto de compra.");
+    /* ========== CÁMARA Y ESCÁNER ========== */
+    function initCameras() {
+      Html5Qrcode.getCameras().then(cameras => {
+        const select = document.getElementById("cameraSelect");
+        if (!cameras || cameras.length === 0) {
+          document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
+          return;
+        }
 
-    const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
-    const text = await res.text();
-    alert(text);
-    fetchUser(scannedCode); // actualizar panel tras asignar
-  }
+        cameras.forEach(cam => {
+          const option = document.createElement("option");
+          option.value = cam.id;
+          option.text = cam.label;
+          select.appendChild(option);
+        });
 
-  // Evento de canje
-  redeemBtn.addEventListener("click", async () => {
-    if (!scannedCode) return alert("Escanea primero un código QR.");
+        select.addEventListener("change", () => {
+          reader.stop().then(() => startScanner(select.value))
+          .catch(err => console.log("Error al detener la cámara:", err));
+        });
 
-    // Confirmación doble
-    if (!confirm("⚠️ Confirma que deseas canjear 100 nutrias para una bebida gratis.")) return;
-    if (!confirm("⚠️ Esta acción restará 100 nutrias. ¿Estás seguro?")) return;
+        startScanner(cameras[0].id);
+      }).catch(err => {
+        document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
+      });
+    }
 
-    // Llamada a WebApp para restar 100 nutrias
-    const res = await fetch(`${SCRIPT_URL}?action=redeemBeverage&code=${scannedCode}`);
-    const text = await res.text();
-    alert(text);
+    function startScanner(cameraId) {
+      reader.start(
+        cameraId,
+        { fps: 10, qrbox: 250 },
+        decodedText => onScanSuccess(decodedText),
+        () => document.getElementById("scan-status").innerText = "Buscando QR..."
+      ).catch(err => {
+        document.getElementById("scan-status").innerText = "❌ Error al iniciar cámara: " + err;
+      });
+    }
 
-    fetchUser(scannedCode); // actualizar panel
-  });
-</script>
+    function onScanSuccess(decodedText) {
+      if (decodedText && decodedText !== scannedCode) {
+        scannedCode = decodedText;
+        reader.pause(true);
+        document.getElementById("scan-status").innerText = "✅ Código detectado: " + decodedText;
+        fetchUser(decodedText);
+      }
+    }
 
+    /* ========== CONSULTAR USUARIO ========== */
+    function fetchUser(code) {
+      fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
+        .then(res => res.json())
+        .then(user => {
+          document.getElementById("result").innerHTML = `
+            <h3>${user.name}</h3>
+            <p>Teléfono: ${user.phone}</p>
+            <p>Nutrias actuales: ${user.nutrias}</p>
+            <p>Recompensa: ${user.rewards}</p>
+          `;
+          redeemBtn.style.display = Number(user.nutrias) >= 100 ? "inline-block" : "none";
+        })
+        .catch(() => {
+          document.getElementById("result").innerHTML = "<p style='color:red;'>❌ Usuario no encontrado.</p>";
+          redeemBtn.style.display = "none";
+        });
+    }
+
+    /* ========== ASIGNAR NUTRIAS ========== */
+    async function assignNutrias() {
+      if (!scannedCode) return showModal({ title: "Error", message: "Escanea primero un código QR." });
+      const amount = document.getElementById("amount").value;
+      if (!amount) return showModal({ title: "Error", message: "Ingresa el monto de compra." });
+
+      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
+      const text = await res.text();
+
+      showModal({
+        title: "✅ Asignación exitosa",
+        message: text,
+        onClose: () => fetchUser(scannedCode)
+      });
+    }
+
+    /* ========== CANJE DE BEBIDA ========== */
+    redeemBtn.addEventListener("click", async () => {
+      if (!scannedCode) return showModal({ title: "Error", message: "Escanea primero un código QR." });
+
+      showConfirm("⚠️ Confirma que deseas canjear 100 nutrias para una bebida gratis.", (confirm1) => {
+        if (!confirm1) return;
+
+        showConfirm("⚠️ Esta acción restará 100 nutrias. ¿Estás seguro?", async (confirm2) => {
+          if (!confirm2) return;
+
+          const res = await fetch(`${SCRIPT_URL}?action=redeemBeverage&code=${scannedCode}`);
+          const text = await res.text();
+
+          const ref = "REF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+          showModal({
+            title: "✅ Canjeo exitoso",
+            message: `
+              <p>Referencia para ticket:</p>
+              <h1 style="font-size:2em; margin:10px 0;">${ref}</h1>
+              <p>Apúntala manualmente en el ticket del cliente.</p>
+            `,
+            onClose: () => fetchUser(scannedCode)
+          });
+        });
+      });
+    });
+  </script>
 </body>
 </html>
