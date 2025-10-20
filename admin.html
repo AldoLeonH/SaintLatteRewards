@@ -6,6 +6,38 @@
   <title>Saint Latte — Panel Admin</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    /* Overlay de carga con nutria girando */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 99999;
+      color: #fff;
+      font-family: sans-serif;
+      text-align: center;
+    }
+
+    #loadingOverlay img {
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -30,33 +62,34 @@
     </div>
   </div>
 
+  <!-- Overlay de carga -->
+  <div id="loadingOverlay">
+    <img src="assets/otter.png" alt="Nutria girando">
+    <p>Procesando, por favor espera...</p>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3ZOGhDlhLmyI8nhrq5KVBkJye-Q_9c6k4x1giUEnapr9llWv4j-adzVVazGJqRdY6aA/exec";
     let scannedCode = null;
     const reader = new Html5Qrcode("reader");
     const redeemBtn = document.getElementById("redeemBtn");
+    const loadingOverlay = document.getElementById("loadingOverlay");
 
     document.addEventListener("DOMContentLoaded", () => {
       initCameras();
       document.getElementById("assignBtn").addEventListener("click", assignNutrias);
     });
 
-    /* ========== UTILIDAD PARA MOSTRAR MODALES ========== */
+    /* ========== FUNCIONES AUXILIARES ========== */
     function showModal({ title, message, buttonText = "Cerrar", onClose = null }) {
       const modal = document.createElement("div");
-      modal.style.position = "fixed";
-      modal.style.top = "0";
-      modal.style.left = "0";
-      modal.style.width = "100%";
-      modal.style.height = "100%";
-      modal.style.background = "rgba(0,0,0,0.6)";
-      modal.style.display = "flex";
-      modal.style.alignItems = "center";
-      modal.style.justifyContent = "center";
-      modal.style.zIndex = "9999";
-
+      Object.assign(modal.style, {
+        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+        background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center",
+        justifyContent: "center", zIndex: 9999
+      });
       modal.innerHTML = `
-        <div style="background:#fff; padding:25px 35px; border-radius:12px; text-align:center; font-family:sans-serif; max-width:320px; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+        <div style="background:#fff; padding:25px 35px; border-radius:12px; text-align:center; font-family:sans-serif; max-width:320px;">
           <h2 style="margin-bottom:10px;">${title}</h2>
           <p style="margin-bottom:20px;">${message}</p>
           <button id="closeModal" style="padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px; cursor:pointer;">${buttonText}</button>
@@ -71,17 +104,11 @@
 
     function showConfirm(message, onConfirm) {
       const modal = document.createElement("div");
-      modal.style.position = "fixed";
-      modal.style.top = "0";
-      modal.style.left = "0";
-      modal.style.width = "100%";
-      modal.style.height = "100%";
-      modal.style.background = "rgba(0,0,0,0.6)";
-      modal.style.display = "flex";
-      modal.style.alignItems = "center";
-      modal.style.justifyContent = "center";
-      modal.style.zIndex = "9999";
-
+      Object.assign(modal.style, {
+        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+        background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center",
+        justifyContent: "center", zIndex: 9999
+      });
       modal.innerHTML = `
         <div style="background:#fff; padding:25px 35px; border-radius:12px; text-align:center; font-family:sans-serif; max-width:320px;">
           <p style="margin-bottom:20px;">${message}</p>
@@ -100,7 +127,15 @@
       });
     }
 
-    /* ========== CÁMARA Y ESCÁNER ========== */
+    function showLoading() {
+      loadingOverlay.style.display = "flex";
+    }
+
+    function hideLoading() {
+      loadingOverlay.style.display = "none";
+    }
+
+    /* ========== SCANNER ========== */
     function initCameras() {
       Html5Qrcode.getCameras().then(cameras => {
         const select = document.getElementById("cameraSelect");
@@ -108,19 +143,15 @@
           document.getElementById("scan-status").innerText = "⚠️ No se detectó ninguna cámara.";
           return;
         }
-
         cameras.forEach(cam => {
           const option = document.createElement("option");
           option.value = cam.id;
           option.text = cam.label;
           select.appendChild(option);
         });
-
         select.addEventListener("change", () => {
-          reader.stop().then(() => startScanner(select.value))
-          .catch(err => console.log("Error al detener la cámara:", err));
+          reader.stop().then(() => startScanner(select.value)).catch(err => console.log("Error al detener la cámara:", err));
         });
-
         startScanner(cameras[0].id);
       }).catch(err => {
         document.getElementById("scan-status").innerText = "❌ Error al obtener cámaras: " + err;
@@ -147,7 +178,7 @@
       }
     }
 
-    /* ========== CONSULTAR USUARIO ========== */
+    /* ========== USUARIO ========== */
     function fetchUser(code) {
       fetch(`${SCRIPT_URL}?action=getUserByCode&code=${encodeURIComponent(code)}`)
         .then(res => res.json())
@@ -172,14 +203,20 @@
       const amount = document.getElementById("amount").value;
       if (!amount) return showModal({ title: "Error", message: "Ingresa el monto de compra." });
 
-      const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
-      const text = await res.text();
-
-      showModal({
-        title: "✅ Asignación exitosa",
-        message: text,
-        onClose: () => fetchUser(scannedCode)
-      });
+      showLoading();
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=addNutrias&code=${scannedCode}&amount=${amount}`);
+        const text = await res.text();
+        hideLoading();
+        showModal({
+          title: "✅ Asignación exitosa",
+          message: text,
+          onClose: () => fetchUser(scannedCode)
+        });
+      } catch (err) {
+        hideLoading();
+        showModal({ title: "Error", message: "No se pudo asignar. Intenta de nuevo." });
+      }
     }
 
     /* ========== CANJE DE BEBIDA ========== */
@@ -192,20 +229,26 @@
         showConfirm("⚠️ Esta acción restará 100 nutrias. ¿Estás seguro?", async (confirm2) => {
           if (!confirm2) return;
 
-          const res = await fetch(`${SCRIPT_URL}?action=redeemBeverage&code=${scannedCode}`);
-          const text = await res.text();
+          showLoading();
+          try {
+            const res = await fetch(`${SCRIPT_URL}?action=redeemBeverage&code=${scannedCode}`);
+            const text = await res.text();
+            hideLoading();
 
-          const ref = "REF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-          showModal({
-            title: "✅ Canjeo exitoso",
-            message: `
-              <p>Referencia para ticket:</p>
-              <h1 style="font-size:2em; margin:10px 0;">${ref}</h1>
-              <p>Apúntala manualmente en el ticket del cliente.</p>
-            `,
-            onClose: () => fetchUser(scannedCode)
-          });
+            const ref = "REF-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            showModal({
+              title: "✅ Canjeo exitoso",
+              message: `
+                <p>Referencia para ticket:</p>
+                <h1 style="font-size:2em; margin:10px 0;">${ref}</h1>
+                <p>Apúntala manualmente en el ticket del cliente.</p>
+              `,
+              onClose: () => fetchUser(scannedCode)
+            });
+          } catch (err) {
+            hideLoading();
+            showModal({ title: "Error", message: "No se pudo realizar el canje. Intenta de nuevo." });
+          }
         });
       });
     });
